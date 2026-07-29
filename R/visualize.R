@@ -1,0 +1,75 @@
+# visualize.R
+# Requires graph_core.R sourced first (for edge_labels).
+
+library(visNetwork)
+
+#' Vectorized "Field: value<br>" formatter for tooltips. Blank/NA fields
+#' collapse to "" so tooltips don't show a wall of "Field: NA".
+format_tooltip_field <- function(field_name, field_value, max_chars = NULL) {
+  ifelse(
+    is.na(field_value) | field_value == "",
+    "",
+    {
+      truncated <- if (!is.null(max_chars)) {
+        ifelse(nchar(field_value) > max_chars,
+               paste0(substr(field_value, 1, max_chars), "..."),
+               field_value)
+      } else {
+        field_value
+      }
+      formatted <- gsub("\n", "<br>", truncated)
+      paste0(field_name, ": ", formatted, "<br>")
+    }
+  )
+}
+
+#' Build an interactive visNetwork widget from a tbl_graph.
+make_visNetwork_graph <- function(g) {
+  nodes_vis <- g |>
+    activate(nodes) |>
+    as_tibble() |>
+    mutate(
+      id = row_number(),
+      label = name,
+      title = paste0(
+        "<b>", name, "</b><br>",
+        format_tooltip_field("Desc", desc, max_chars = 200),
+        format_tooltip_field("City", city, max_chars = 20)
+      ),
+      group = node_type,
+      shape = ifelse(node_type == "house", "square", "dot"),
+      size = 7
+    )
+
+  edges_vis <- g |>
+    activate(edges) |>
+    as_tibble() |>
+    mutate(
+      title = paste0(
+        "<b>", edge_labels[edge_type], "</b><br>",
+        format_tooltip_field("Nature", relationship_nature, max_chars = 150),
+        format_tooltip_field("Intentions", intentions),
+        format_tooltip_field("Position", position),
+        format_tooltip_field("Sentiment", sentiment),
+        format_tooltip_field("Standing", standing),
+        format_tooltip_field("Additional Desc", additional_desc, max_chars = 200)
+      ),
+      color = case_when(
+        edge_type == "member_house" ~ "#c99a4b",
+        edge_type == "NPC_NPC"      ~ "#4c9a6b",
+        edge_type == "house_house"  ~ "#8a4c9a",
+        TRUE ~ "gray"
+      ),
+      arrows = "to"
+    )
+
+  visNetwork(nodes_vis, edges_vis) |>
+    visOptions(
+      highlightNearest = list(enabled = TRUE, degree = 1, hover = TRUE),
+      nodesIdSelection = TRUE,
+      selectedBy = "group"
+    ) |>
+    visLayout(randomSeed = 42) |>
+    visEdges(smooth = TRUE) |>
+    visPhysics(stabilization = TRUE)
+}
