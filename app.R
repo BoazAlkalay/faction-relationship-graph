@@ -300,9 +300,16 @@ server <- function(input, output, session) {
     req(input$edit_node_name)
     ntype <- node_type_of(input$edit_node_name)
     row <- all_nodes() |> filter(name == input$edit_node_name)
-    fields <- setdiff(editable_node_fields(ntype), c("node_type"))
+    fields <- setdiff(editable_node_fields(ntype), c("node_type", "visible_fields"))
 
-    lapply(fields, function(f) {
+    current_visible <- row$visible_fields
+    current_visible <- if (length(current_visible) == 0 || is.na(current_visible) || current_visible == "") {
+      character(0)
+    } else {
+      trimws(strsplit(current_visible, ",")[[1]])
+    }
+
+    field_inputs <- lapply(fields, function(f) {
       val <- row[[f]]
       val <- if (length(val) == 0 || is.na(val)) "" else as.character(val)
       if (f == "desc" || grepl("goals_n_interests|scandals|secrets|additional", f)) {
@@ -311,12 +318,20 @@ server <- function(input, output, session) {
         textInput(paste0("edit_field_", f), f, value = val)
       }
     })
+
+    tagList(
+      field_inputs,
+      hr(),
+      checkboxGroupInput("edit_visible_fields",
+                          "Show on graph tooltip (unchecked = kept in your notes only)",
+                          choices = fields, selected = current_visible)
+    )
   })
 
   observeEvent(input$save_node_btn, {
     req(input$edit_node_name)
     ntype <- node_type_of(input$edit_node_name)
-    fields <- setdiff(editable_node_fields(ntype), c("node_type", "name"))
+    fields <- setdiff(editable_node_fields(ntype), c("node_type", "name", "visible_fields"))
     updates <- lapply(fields, function(f) input[[paste0("edit_field_", f)]])
     names(updates) <- fields
     updates <- updates[!sapply(updates, is.null)]
@@ -324,6 +339,7 @@ server <- function(input, output, session) {
     for (num_field in intersect(names(updates), c("age", "CR"))) {
       suppressWarnings(updates[[num_field]] <- as.integer(updates[[num_field]]))
     }
+    updates$visible_fields <- paste(input$edit_visible_fields, collapse = ",")
     tryCatch({
       g <- do.call(update_node, c(list(graph = graph_rv(), node_name = input$edit_node_name), updates))
       graph_rv(g)

@@ -12,6 +12,10 @@ library(tidygraph)
 
 house_schema <- list(
   node_type = "house",
+  # Which attributes show up in the graph tooltip - comma-separated field
+  # names. Editable per-house via the Edit/Delete tab; doesn't affect
+  # inspect_node(), which always shows everything filled in.
+  visible_fields = "desc,city",
   # Identity & Location
   desc = NA_character_,
   crest_desc = NA_character_,
@@ -40,6 +44,14 @@ house_schema <- list(
 
 npc_schema <- list(
   node_type = "NPC",
+  # Which attributes show up in the graph tooltip - see house_schema note above.
+  visible_fields = "personality_trait,bond,flaw,ideal,desc,age",
+  # Character traits (see trait_roller.R) - kept up top since these are
+  # usually the first thing worth glancing at for an NPC
+  personality_trait = NA_character_,
+  bond = NA_character_,
+  flaw = NA_character_,
+  ideal = NA_character_,
   # Identity & Location
   age = NA_integer_,
   desc = NA_character_,
@@ -63,12 +75,7 @@ npc_schema <- list(
   relation_to_PCs = NA_character_,
   goals_n_interests = NA_character_,
   scandals = NA_character_,
-  secrets = NA_character_,
-  # Character traits (see trait_roller.R)
-  personality_trait = NA_character_,
-  bond = NA_character_,
-  flaw = NA_character_,
-  ideal = NA_character_
+  secrets = NA_character_
 )
 
 edge_schema <- list(

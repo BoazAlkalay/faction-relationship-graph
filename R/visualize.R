@@ -23,19 +23,39 @@ format_tooltip_field <- function(field_name, field_value, max_chars = NULL) {
   )
 }
 
+#' Build one node's tooltip HTML from whichever fields its visible_fields
+#' column lists (comma-separated). Falls back to just the name if none set.
+build_node_tooltip <- function(row) {
+  visible <- character(0)
+  if (!is.null(row$visible_fields) && !is.na(row$visible_fields) && row$visible_fields != "") {
+    visible <- trimws(strsplit(row$visible_fields, ",")[[1]])
+  }
+
+  parts <- paste0("<b>", row$name, "</b><br>")
+  for (f in visible) {
+    if (!f %in% names(row)) next
+    val <- row[[f]]
+    if (length(val) == 0 || is.na(val)) next
+    val_chr <- as.character(val)
+    if (val_chr == "") next
+    label <- tools::toTitleCase(gsub("_", " ", f))
+    parts <- paste0(parts, format_tooltip_field(label, val_chr, max_chars = 200))
+  }
+  parts
+}
+
 #' Build an interactive visNetwork widget from a tbl_graph.
 make_visNetwork_graph <- function(g) {
   nodes_vis <- g |>
     activate(nodes) |>
     as_tibble() |>
+    mutate(id = row_number())
+
+  nodes_vis$title <- purrr::pmap_chr(nodes_vis, function(...) build_node_tooltip(list(...)))
+
+  nodes_vis <- nodes_vis |>
     mutate(
-      id = row_number(),
       label = name,
-      title = paste0(
-        "<b>", name, "</b><br>",
-        format_tooltip_field("Desc", desc, max_chars = 200),
-        format_tooltip_field("City", city, max_chars = 20)
-      ),
       group = node_type,
       shape = ifelse(node_type == "house", "square", "dot"),
       size = 7

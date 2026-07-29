@@ -1,12 +1,23 @@
-# Noble Houses Graph Tool
+# Faction Relationship Graph
 
-A small toolkit for modeling D&D noble houses, NPCs, and their relationships
-as a graph — built on `tidygraph` / `igraph`, viewed with `visNetwork`, and
-wrapped in a Shiny app so you (or players) can add houses/NPCs, wire up
-relationships, and roll random personality traits without touching code.
+I DM a homebrew D&D campaign and kept losing track of who's in which noble
+house, who's feuding with whom, and who secretly owes what to whom. This
+started as a Quarto notebook full of `tidygraph` helper functions and grew
+into a small Shiny app: add houses and NPCs, wire up relationships between
+them, and see the whole thing as an interactive network graph instead of a
+pile of notes.
 
-The public demo runs on a **fully fictional placeholder world** (`data/seed_data.R`),
-not any real campaign — see "Using your own data" below.
+The public demo runs on a made-up placeholder world (Aldenmere, in
+`data/seed_data.R`) — not my actual campaign. See "Using your own data"
+below if you want to run it with real content that stays private.
+
+## What it does
+
+- Add houses and NPCs, with a name suggestion button (procedural, not AI-generated — see the note below)
+- Wire up relationships between them, with the type list auto-filtered to what actually makes sense between the two entities you pick
+- Edit or delete any node/edge after the fact
+- Roll random personality trait / bond / flaw / ideal for an NPC
+- View the whole graph as an interactive `visNetwork` widget
 
 ## Structure
 
@@ -18,8 +29,9 @@ R/
                      # add_house_relations(), update_edge(), remove_edge()
   visualize.R       # make_visNetwork_graph(), tooltip formatting
   trait_roller.R    # roll_trait(), roll_all_traits(), load_custom_traits()
+  name_roller.R     # roll_name(), roll_name_options()
 data/
-  seed_data.R       # build_seed_graph() - fictional demo world
+  seed_data.R       # build_seed_graph() - the placeholder demo world
 app.R               # the Shiny app
 ```
 
@@ -28,7 +40,7 @@ app.R               # the Shiny app
 - Nodes: `"house"`, `"NPC"`
 - Edges: `member_house`, `NPC_NPC`, `house_house`, `NPC_house`
 
-## Running locally
+## Running it locally
 
 ```r
 install.packages(c("shiny", "tidyverse", "tidygraph", "igraph", "ggraph", "visNetwork"))
@@ -37,35 +49,33 @@ shiny::runApp()
 
 ## Deploying
 
-- **shinyapps.io**: `rsconnect::deployApp()` from the project root — this needs
-  the full app (it's not a static site, since adding nodes/edges and rolling
-  traits happen server-side).
-- **Embedding in a Quarto/GitHub Pages site**: link out to the shinyapps.io
-  URL, or embed it in an iframe on a page in your site. A pure static Quarto
-  render can't host the "add a node" / "roll traits" interactivity — that
-  needs a live R process.
+- **shinyapps.io**: `rsconnect::deployApp()` from the project root. This
+  needs the full live app, not a static export — adding nodes/edges and
+  rolling traits happen server-side.
+- **Linking from a static site**: a plain Quarto/GitHub Pages render can't
+  host the interactive parts (that needs a running R process), so I just
+  link out to the shinyapps.io URL from my site instead of trying to embed
+  the whole app.
 
 ## Using your own (real) campaign data
 
-Don't edit `data/seed_data.R` in place if you want to keep your own graph
-private. Instead:
+I keep my actual campaign's data out of this repo. If you want to do the
+same:
 
-1. Write your own `data/my_seed_data.R` with a `build_seed_graph()` function
-   (same shape as the demo one, but with your real houses/NPCs/edges).
-2. In `app.R`, swap the `source("data/seed_data.R")` line for your file.
+1. Write your own `data/my_seed_data.R` with a `build_seed_graph()`
+   function shaped like the demo one, but with your real houses/NPCs/edges.
+2. In `app.R`, swap `source("data/seed_data.R")` for your file.
 3. Add that file to `.gitignore` so it never gets committed:
    ```
    data/my_seed_data.R
    ```
 
-This keeps the public repo/app showing only the placeholder world while your
-own graph stays local.
+## On the trait/name tables
 
-## Trait tables
-
-`R/trait_roller.R` ships with a small set of **original** personality
-trait / bond / flaw / ideal tables written for this project — nothing
-transcribed from a published sourcebook. If you'd rather roll on tables
-from a book you own, write your own CSV (`category,text` columns) and load
-it with `load_custom_traits("path/to/your.csv")`, then credit the source
-in this README rather than pasting its text into the repo.
+The personality trait / bond / flaw / ideal tables in `R/trait_roller.R`
+are ones I wrote for this project, not transcribed from a published book —
+that's on purpose, so this repo doesn't carry someone else's copyrighted
+text. Same idea for `R/name_roller.R`: it builds names by recombining
+syllable fragments rather than pulling from a name list or a generative
+model. If you swap in tables from somewhere else, credit the source here
+rather than pasting the original text into the repo.
