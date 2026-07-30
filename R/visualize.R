@@ -23,14 +23,27 @@ format_tooltip_field <- function(field_name, field_value, max_chars = NULL) {
   )
 }
 
+#' Which fields show by default for a node type when visible_fields hasn't
+#' been set (e.g. data migrated from before that column existed).
+.default_visible_fields_for <- function(node_type) {
+  if (identical(node_type, "house")) house_schema$visible_fields else npc_schema$visible_fields
+}
+
 #' Build one node's tooltip HTML from whichever fields its visible_fields
-#' column lists (comma-separated). Falls back to just the name if none set.
-#' Each field gets its own row with alternating shading so adjacent
-#' attributes (e.g. Bond vs Flaw) are easy to tell apart at a glance.
+#' column lists (comma-separated). Falls back to the schema's default field
+#' list if visible_fields is unset (e.g. imported/migrated data), and to
+#' just the name if even that's unavailable. Each field gets its own row
+#' with alternating shading so adjacent attributes (e.g. Bond vs Flaw) are
+#' easy to tell apart at a glance.
 build_node_tooltip <- function(row) {
+  vf <- row$visible_fields
+  if (is.null(vf) || is.na(vf) || vf == "") {
+    vf <- .default_visible_fields_for(row$node_type)
+  }
+
   visible <- character(0)
-  if (!is.null(row$visible_fields) && !is.na(row$visible_fields) && row$visible_fields != "") {
-    visible <- trimws(strsplit(row$visible_fields, ",")[[1]])
+  if (!is.null(vf) && !is.na(vf) && vf != "") {
+    visible <- trimws(strsplit(vf, ",")[[1]])
   }
 
   parts <- paste0("<div style='font-weight:bold;padding:3px 4px;'>", row$name, "</div>")
