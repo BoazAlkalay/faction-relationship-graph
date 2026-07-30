@@ -15,6 +15,7 @@ source("R/edge_functions.R")
 source("R/visualize.R")
 source("R/trait_roller.R")
 source("R/name_roller.R")
+source("R/csv_io.R")
 source("data/seed_data.R")
 
 # Which edge_type(s) are valid for a given (from_type, to_type) pair.
@@ -120,7 +121,12 @@ ui <- fluidPage(
           downloadButton("download_graph_btn", "Download current graph (.rds)"),
           hr(),
           fileInput("upload_graph_file", "Load a saved graph (.rds)", accept = ".rds"),
-          actionButton("load_graph_btn", "Load (replaces current graph)", class = "btn-danger")
+          actionButton("load_graph_btn", "Load (replaces current graph)", class = "btn-danger"),
+          hr(),
+          helpText("Migrating from an older version of this project? Load nodes/edges CSVs instead:"),
+          fileInput("upload_nodes_csv", "Nodes CSV", accept = ".csv"),
+          fileInput("upload_edges_csv", "Edges CSV", accept = ".csv"),
+          actionButton("load_csv_btn", "Load from CSV (replaces current graph)", class = "btn-danger")
         ),
         accordion_panel(
           "Edit / Delete",
@@ -548,6 +554,15 @@ server <- function(input, output, session) {
       }
       graph_rv(loaded)
       showNotification("Graph loaded.", type = "message")
+    }, error = function(e) showNotification(conditionMessage(e), type = "error"))
+  })
+
+  observeEvent(input$load_csv_btn, {
+    req(input$upload_nodes_csv, input$upload_edges_csv)
+    tryCatch({
+      loaded <- load_graph_from_csv(input$upload_nodes_csv$datapath, input$upload_edges_csv$datapath)
+      graph_rv(loaded)
+      showNotification("Graph loaded from CSV.", type = "message")
     }, error = function(e) showNotification(conditionMessage(e), type = "error"))
   })
 

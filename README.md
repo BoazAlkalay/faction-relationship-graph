@@ -32,6 +32,7 @@ R/
   visualize.R       # make_visNetwork_graph(), tooltip formatting
   trait_roller.R    # roll_trait(), roll_all_traits(), load_custom_traits()
   name_roller.R     # roll_name(), roll_name_options(), roll_name_realistic()
+  csv_io.R          # export_graph_csv(), load_graph_from_csv() - for migrating older data
 data/
   seed_data.R       # build_seed_graph() - the placeholder demo world
 app.R               # the Shiny app
@@ -71,24 +72,27 @@ your own content, depending on where it's coming from:
 one back in and replaces whatever's currently loaded. Keep that file
 wherever you keep your campaign notes — it's not part of this repo.
 
-**Migrating an older dataset** (e.g. from before this app existed, built
-with the original `add_house()`/`add_NPC()`/etc. calls in a Quarto
-notebook): don't just load an old `.rds` — the schema has changed since
-then (new columns like `visible_fields`), so an old graph object may be
-missing fields the current tooltip/editor code expects. Instead:
+**Migrating an older dataset** (e.g. built with an earlier version of this
+project, or a messy edit history that's hard to replay cleanly): don't try
+to re-run old code or load an old `.rds` directly — the schema has changed
+since then. Instead, export the *current state* of the old graph object
+(regardless of how it got there) and load it through the schema-reconciling
+CSV path:
 
-1. Write your own `data/my_seed_data.R` with a `build_seed_graph()`
-   function shaped like the demo one, but re-running your original
-   `add_house()`, `add_NPC()`, `NPC_assign_house()`, etc. calls against
-   `new_empty_graph()` — the function names and arguments are unchanged,
-   so this is mostly copy-paste from your old notebook's build steps.
-2. In `app.R`, swap `source("data/seed_data.R")` for your file.
-3. Add that file to `.gitignore` so it never gets committed:
-   ```
-   data/my_seed_data.R
-   ```
-4. Once it loads correctly, use "Download current graph" on the Save/Load
-   tab to get an up-to-date `.rds` you can reload directly from then on.
+```r
+# in the OLD project, wherever the graph object currently lives
+nodes_df <- graph |> tidygraph::activate(nodes) |> tibble::as_tibble()
+edges_df <- graph |> tidygraph::activate(edges) |> tibble::as_tibble()
+readr::write_csv(nodes_df, "old_nodes.csv")
+readr::write_csv(edges_df, "old_edges.csv")
+```
+
+Then use the **Save / Load** tab's "Load from CSV" option in this app, or
+call `load_graph_from_csv("old_nodes.csv", "old_edges.csv")` directly — it
+fills in any columns the current schema expects but the old export doesn't
+have (e.g. `visible_fields`), and applies known column renames. Once it
+loads correctly, use "Download current graph" to get an up-to-date `.rds`
+you can reload directly from then on.
 
 ## On the trait/name tables
 
