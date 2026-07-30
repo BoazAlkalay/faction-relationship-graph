@@ -49,7 +49,7 @@ ui <- fluidPage(
     .accordion-button { font-weight: 600; }
     .name-suggest-row { display: flex; align-items: center; gap: 8px; margin: 6px 0 10px; }
   ")),
-  titlePanel("Faction Relationship Graph (demo)"),
+  titlePanel("Faction Relationship Graph"),
   sidebarLayout(
     sidebarPanel(
       width = 4,
