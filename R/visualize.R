@@ -83,6 +83,38 @@ build_node_tooltip <- function(row) {
   parts
 }
 
+#' Build one edge's tooltip HTML with the same alternating-row shading as
+#' build_node_tooltip(), so edge hovers are just as easy to scan.
+build_edge_tooltip <- function(row) {
+  label <- unname(edge_labels[row$edge_type])
+  if (is.na(label)) label <- row$edge_type
+
+  fields <- list(
+    Nature = list(row$relationship_nature, 150),
+    Intentions = list(row$intentions, NULL),
+    Position = list(row$position, NULL),
+    Sentiment = list(row$sentiment, NULL),
+    Standing = list(row$standing, NULL),
+    "Additional Desc" = list(row$additional_desc, 200)
+  )
+
+  parts <- paste0("<div style='font-weight:bold;padding:3px 4px;'>", label, "</div>")
+  shown <- 0
+  for (fname in names(fields)) {
+    val <- fields[[fname]][[1]]
+    max_chars <- fields[[fname]][[2]]
+    if (is.null(val) || length(val) == 0 || is.na(val) || val == "") next
+
+    field_html <- format_tooltip_field(fname, val, max_chars = max_chars)
+    field_html <- sub("<br>$", "", field_html)
+
+    bg <- if (shown %% 2 == 0) "#f2f2f2" else "#ffffff"
+    parts <- paste0(parts, "<div style='background-color:", bg, ";padding:3px 4px;'>", field_html, "</div>")
+    shown <- shown + 1
+  }
+  parts
+}
+
 #' Build an interactive visNetwork widget from a tbl_graph.
 make_visNetwork_graph <- function(g) {
   nodes_vis <- g |>
@@ -105,15 +137,6 @@ make_visNetwork_graph <- function(g) {
     as_tibble() |>
     mutate(
       id = paste0("e", row_number()),  # prefixed so this never collides with a node id
-      title = paste0(
-        "<b>", edge_labels[edge_type], "</b><br>",
-        format_tooltip_field("Nature", relationship_nature, max_chars = 150),
-        format_tooltip_field("Intentions", intentions),
-        format_tooltip_field("Position", position),
-        format_tooltip_field("Sentiment", sentiment),
-        format_tooltip_field("Standing", standing),
-        format_tooltip_field("Additional Desc", additional_desc, max_chars = 200)
-      ),
       color = case_when(
         edge_type == "member_house" ~ "#c99a4b",
         edge_type == "NPC_NPC"      ~ "#4c9a6b",
@@ -122,6 +145,8 @@ make_visNetwork_graph <- function(g) {
       ),
       arrows = "to"
     )
+
+  edges_vis$title <- purrr::pmap_chr(edges_vis, function(...) build_edge_tooltip(list(...)))
 
   visNetwork(nodes_vis, edges_vis) |>
     visOptions(

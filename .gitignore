@@ -5,3 +5,7 @@
 .httr-oauth
 .DS_Store
 rsconnect/
+
+# real campaign data - keep out of the public repo
+*.rds
+data/*.csv
