@@ -74,6 +74,7 @@ make_visNetwork_graph <- function(g) {
     activate(edges) |>
     as_tibble() |>
     mutate(
+      id = row_number(),
       title = paste0(
         "<b>", edge_labels[edge_type], "</b><br>",
         format_tooltip_field("Nature", relationship_nature, max_chars = 150),
@@ -114,6 +115,11 @@ make_visNetwork_graph <- function(g) {
         "overflow: hidden;"
       )
     ) |>
+    visEvents(select = "function(properties) {
+      if (properties.edges.length > 0 && properties.nodes.length === 0) {
+        Shiny.setInputValue('network_edge_selected', properties.edges[0], {priority: 'event'});
+      }
+    }") |>
     visLayout(randomSeed = 42) |>
     visEdges(smooth = TRUE) |>
     visPhysics(stabilization = TRUE)

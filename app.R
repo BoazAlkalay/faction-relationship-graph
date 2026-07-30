@@ -127,7 +127,11 @@ ui <- fluidPage(
           tabsetPanel(
             tabPanel("Node",
               br(),
+              helpText("Tip: click a node on the graph, then use the button below."),
               uiOutput("edit_node_ui"),
+              actionButton("pick_edit_node_btn", "\u2193 Use clicked node",
+                           class = "btn-sm btn-outline-secondary"),
+              br(), br(),
               uiOutput("edit_node_fields_ui"),
               fluidRow(
                 column(6, actionButton("save_node_btn", "Save Changes", class = "btn-primary")),
@@ -136,7 +140,11 @@ ui <- fluidPage(
             ),
             tabPanel("Edge",
               br(),
+              helpText("Tip: click an edge line on the graph, then use the button below."),
               uiOutput("edit_edge_ui"),
+              actionButton("pick_edit_edge_btn", "\u2193 Use clicked edge",
+                           class = "btn-sm btn-outline-secondary"),
+              br(), br(),
               uiOutput("edit_edge_fields_ui"),
               fluidRow(
                 column(6, actionButton("save_edge_btn", "Save Changes", class = "btn-primary")),
@@ -291,6 +299,23 @@ server <- function(input, output, session) {
       showNotification("Click a node on the graph first.", type = "warning")
     } else {
       updateSelectInput(session, "rel_to", selected = nm)
+    }
+  })
+
+  observeEvent(input$pick_edit_node_btn, {
+    nm <- clicked_node_name()
+    if (is.null(nm) || length(nm) == 0) {
+      showNotification("Click a node on the graph first.", type = "warning")
+    } else {
+      updateSelectInput(session, "edit_node_name", selected = nm)
+    }
+  })
+
+  observeEvent(input$pick_edit_edge_btn, {
+    if (is.null(input$network_edge_selected)) {
+      showNotification("Click an edge line on the graph first.", type = "warning")
+    } else {
+      updateSelectInput(session, "edit_edge_label", selected = as.character(input$network_edge_selected))
     }
   })
 
