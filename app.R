@@ -575,7 +575,7 @@ server <- function(input, output, session) {
   })
   output$inspect_table <- renderTable({
     req(input$inspect_node_name)
-    inspect_node(graph_rv(), input$inspect_node_name) |> select(Attribute, Preview)
+    inspect_node(graph_rv(), input$inspect_node_name) |> select(Attribute, "Value" = Full_Text)
   })
 }
 

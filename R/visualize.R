@@ -161,13 +161,15 @@ make_visNetwork_graph <- function(g) {
         "padding: 0;",
         "white-space: normal;",
         "max-width: 260px;",
+        "max-height: 320px;",
+        "overflow-y: auto;",
         "word-wrap: break-word;",
         "background-color: #fdfdfd;",
         "border: 1px solid #ccc;",
         "border-radius: 4px;",
         "box-shadow: 2px 2px 6px rgba(0,0,0,0.15);",
         "font-size: 12px;",
-        "overflow: hidden;"
+        "overflow-x: hidden;"
       )
     ) |>
     visEvents(select = "function(properties) {
