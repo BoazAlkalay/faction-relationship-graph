@@ -109,6 +109,14 @@ ui <- fluidPage(
           uiOutput("reroll_npc_ui"),
           actionButton("reroll_btn", "Roll New Traits", class = "btn-primary")
         ),
+        tabPanel("Save / Load",
+          br(),
+          helpText("The graph only lives in memory while the app is running — download it to keep your work."),
+          downloadButton("download_graph_btn", "Download current graph (.rds)"),
+          hr(),
+          fileInput("upload_graph_file", "Load a saved graph (.rds)", accept = ".rds"),
+          actionButton("load_graph_btn", "Load (replaces current graph)", class = "btn-danger")
+        ),
         tabPanel("Edit / Delete",
           br(),
           tabsetPanel(
@@ -490,6 +498,26 @@ server <- function(input, output, session) {
       graph_rv(remove_edge(graph_rv(), row$from_name, row$to_name))
       removeModal()
       showNotification("Edge deleted.", type = "message")
+    }, error = function(e) showNotification(conditionMessage(e), type = "error"))
+  })
+
+  # ------------------------------------------------------------------
+  # Save / Load
+  # ------------------------------------------------------------------
+  output$download_graph_btn <- downloadHandler(
+    filename = function() paste0("faction-graph-", Sys.Date(), ".rds"),
+    content = function(file) saveRDS(graph_rv(), file)
+  )
+
+  observeEvent(input$load_graph_btn, {
+    req(input$upload_graph_file)
+    tryCatch({
+      loaded <- readRDS(input$upload_graph_file$datapath)
+      if (!inherits(loaded, "tbl_graph")) {
+        stop("That file doesn't look like a saved graph from this app.")
+      }
+      graph_rv(loaded)
+      showNotification("Graph loaded.", type = "message")
     }, error = function(e) showNotification(conditionMessage(e), type = "error"))
   })
 

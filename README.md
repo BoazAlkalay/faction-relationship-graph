@@ -18,6 +18,7 @@ below if you want to run it with real content that stays private.
 - Wire up relationships between them, with the type list auto-filtered to what actually makes sense between the two entities you pick
 - Edit or delete any node/edge after the fact, including which attributes actually show up on hover
 - Roll random personality trait / bond / flaw / ideal for an NPC
+- Download the current graph as `.rds` and load it back later — the app itself has no persistence between sessions otherwise
 - View the whole graph as an interactive `visNetwork` widget
 
 ## Structure
@@ -62,16 +63,32 @@ shiny::runApp()
 
 ## Using your own (real) campaign data
 
-I keep my actual campaign's data out of this repo. If you want to do the
-same:
+I keep my actual campaign's data out of this repo. Two ways to work with
+your own content, depending on where it's coming from:
+
+**Ongoing work you build in the app itself:** use the **Save / Load** tab.
+"Download current graph" saves everything to an `.rds` file; "Load" reads
+one back in and replaces whatever's currently loaded. Keep that file
+wherever you keep your campaign notes — it's not part of this repo.
+
+**Migrating an older dataset** (e.g. from before this app existed, built
+with the original `add_house()`/`add_NPC()`/etc. calls in a Quarto
+notebook): don't just load an old `.rds` — the schema has changed since
+then (new columns like `visible_fields`), so an old graph object may be
+missing fields the current tooltip/editor code expects. Instead:
 
 1. Write your own `data/my_seed_data.R` with a `build_seed_graph()`
-   function shaped like the demo one, but with your real houses/NPCs/edges.
+   function shaped like the demo one, but re-running your original
+   `add_house()`, `add_NPC()`, `NPC_assign_house()`, etc. calls against
+   `new_empty_graph()` — the function names and arguments are unchanged,
+   so this is mostly copy-paste from your old notebook's build steps.
 2. In `app.R`, swap `source("data/seed_data.R")` for your file.
 3. Add that file to `.gitignore` so it never gets committed:
    ```
    data/my_seed_data.R
    ```
+4. Once it loads correctly, use "Download current graph" on the Save/Load
+   tab to get an up-to-date `.rds` you can reload directly from then on.
 
 ## On the trait/name tables
 
