@@ -1,0 +1,10 @@
+.Rproj.user/
+.Rhistory
+.RData
+.Ruserdata
+.git/
+.gitignore
+
+# real campaign data - never deploy this to shinyapps.io
+*.rds
+data/*.csv
