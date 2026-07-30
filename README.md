@@ -45,7 +45,7 @@ app.R               # the Shiny app
 ## Running it locally
 
 ```r
-install.packages(c("shiny", "tidyverse", "tidygraph", "igraph", "ggraph", "visNetwork"))
+install.packages(c("shiny", "bslib", "tidyverse", "tidygraph", "igraph", "ggraph", "visNetwork"))
 # optional, only needed for the "realistic name" generator:
 install.packages("httr")
 shiny::runApp()

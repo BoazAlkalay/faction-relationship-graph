@@ -4,6 +4,7 @@
 # so nobody's real campaign data has to be public for the demo to work.
 
 library(shiny)
+library(bslib)
 library(tidyverse)
 library(tidygraph)
 library(visNetwork)
@@ -39,24 +40,32 @@ editable_node_fields <- function(node_type) {
 }
 
 ui <- fluidPage(
+  tags$style(HTML("
+    .accordion-item:nth-of-type(odd) { background-color: #f7f7f9; }
+    .accordion-item:nth-of-type(even) { background-color: #ffffff; }
+    .accordion-body { padding: 16px 14px; }
+    .accordion-button { font-weight: 600; }
+    .name-suggest-row { display: flex; align-items: center; gap: 8px; margin: 6px 0 10px; }
+  ")),
   titlePanel("Faction Relationship Graph (demo)"),
   sidebarLayout(
     sidebarPanel(
       width = 4,
-      tabsetPanel(
-        tabPanel("Add House",
-          br(),
-          fluidRow(
-            column(8, textInput("house_name", "House name")),
-            column(4, actionButton("suggest_house_name", "Suggest", style = "margin-top:25px;"))
-          ),
+      accordion(
+        id = "action_accordion",
+        open = "Add House",
+        accordion_panel(
+          "Add House",
+          textInput("house_name", "House name"),
+          div(class = "name-suggest-row",
+              actionButton("suggest_house_name", "Suggest a name", class = "btn-sm btn-outline-secondary")),
           uiOutput("house_name_suggestions_ui"),
           textInput("house_city", "City", value = "Aldenmere"),
           textAreaInput("house_desc", "Description", rows = 3),
           actionButton("add_house_btn", "Add House", class = "btn-primary")
         ),
-        tabPanel("Add NPC",
-          br(),
+        accordion_panel(
+          "Add NPC",
           radioButtons("npc_name_style", "Name style",
                        choices = c("Fantasy (procedural, offline)" = "procedural",
                                    "Realistic (external generator, by country)" = "realistic"),
@@ -66,31 +75,26 @@ ui <- fluidPage(
             selectInput("npc_nationality", "Country / inspiration",
                         choices = realistic_name_nationalities)
           ),
-          fluidRow(
-            column(8, textInput("npc_name", "NPC name")),
-            column(4, actionButton("suggest_npc_name", "Suggest", style = "margin-top:25px;"))
-          ),
+          textInput("npc_name", "NPC name"),
+          div(class = "name-suggest-row",
+              actionButton("suggest_npc_name", "Suggest a name", class = "btn-sm btn-outline-secondary")),
           uiOutput("npc_name_suggestions_ui"),
           numericInput("npc_age", "Age", value = NA, min = 0),
           textAreaInput("npc_desc", "Description", rows = 3),
           checkboxInput("npc_roll_traits", "Roll personality/bond/flaw/ideal", value = TRUE),
           actionButton("add_npc_btn", "Add NPC", class = "btn-primary")
         ),
-        tabPanel("Add Relationship",
-          br(),
+        accordion_panel(
+          "Add Relationship",
           helpText("Tip: click a node on the graph, then use the buttons below to fill From/To."),
           uiOutput("rel_from_ui"),
-          fluidRow(
-            column(12, actionButton("pick_from_btn", "\u2193 Use clicked node as From",
-                                     class = "btn-sm btn-outline-secondary"))
-          ),
-          br(),
+          actionButton("pick_from_btn", "\u2193 Use clicked node as From",
+                       class = "btn-sm btn-outline-secondary"),
+          br(), br(),
           uiOutput("rel_to_ui"),
-          fluidRow(
-            column(12, actionButton("pick_to_btn", "\u2193 Use clicked node as To",
-                                     class = "btn-sm btn-outline-secondary"))
-          ),
-          br(),
+          actionButton("pick_to_btn", "\u2193 Use clicked node as To",
+                       class = "btn-sm btn-outline-secondary"),
+          br(), br(),
           uiOutput("rel_type_ui"),
           conditionalPanel(
             condition = "input.rel_type == 'member_house'",
@@ -103,22 +107,22 @@ ui <- fluidPage(
           checkboxInput("rel_mutual", "Mutual (adds the reverse tie too)", value = FALSE),
           actionButton("add_rel_btn", "Add Relationship", class = "btn-primary")
         ),
-        tabPanel("Roll Traits",
-          br(),
+        accordion_panel(
+          "Roll Traits",
           helpText("Reroll personality trait, bond, flaw, and ideal for an existing NPC."),
           uiOutput("reroll_npc_ui"),
           actionButton("reroll_btn", "Roll New Traits", class = "btn-primary")
         ),
-        tabPanel("Save / Load",
-          br(),
+        accordion_panel(
+          "Save / Load",
           helpText("The graph only lives in memory while the app is running — download it to keep your work."),
           downloadButton("download_graph_btn", "Download current graph (.rds)"),
           hr(),
           fileInput("upload_graph_file", "Load a saved graph (.rds)", accept = ".rds"),
           actionButton("load_graph_btn", "Load (replaces current graph)", class = "btn-danger")
         ),
-        tabPanel("Edit / Delete",
-          br(),
+        accordion_panel(
+          "Edit / Delete",
           tabsetPanel(
             tabPanel("Node",
               br(),
