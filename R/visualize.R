@@ -37,13 +37,30 @@ format_tooltip_field <- function(field_name, field_value, max_chars = NULL) {
 #' easy to tell apart at a glance.
 build_node_tooltip <- function(row) {
   vf <- row$visible_fields
-  if (is.null(vf) || is.na(vf) || vf == "") {
-    vf <- .default_visible_fields_for(row$node_type)
+  explicit <- !(is.null(vf) || is.na(vf) || vf == "")
+
+  has_value <- function(field) {
+    field %in% names(row) && !is.na(row[[field]]) && as.character(row[[field]]) != ""
   }
 
-  visible <- character(0)
-  if (!is.null(vf) && !is.na(vf) && vf != "") {
+  if (explicit) {
     visible <- trimws(strsplit(vf, ",")[[1]])
+  } else {
+    candidate <- .default_visible_fields_for(row$node_type)
+    candidate <- if (!is.null(candidate) && !is.na(candidate) && candidate != "") {
+      trimws(strsplit(candidate, ",")[[1]])
+    } else {
+      character(0)
+    }
+
+    if (length(candidate) > 0 && any(vapply(candidate, has_value, logical(1)))) {
+      visible <- candidate
+    } else {
+      # Defaults don't apply to this node's data (e.g. migrated content in a
+      # different shape) - show everything it actually has instead of a
+      # name-only tooltip.
+      visible <- setdiff(names(row), c("name", "node_type", "visible_fields", "id"))
+    }
   }
 
   parts <- paste0("<div style='font-weight:bold;padding:3px 4px;'>", row$name, "</div>")
@@ -134,6 +151,10 @@ make_visNetwork_graph <- function(g) {
       }
     }") |>
     visLayout(randomSeed = 42) |>
-    visEdges(smooth = TRUE) |>
-    visPhysics(stabilization = TRUE)
+    visEdges(smooth = list(enabled = TRUE, type = "curvedCW", roundness = 0.15)) |>
+    visPhysics(
+      solver = "barnesHut",
+      barnesHut = list(gravitationalConstant = -4000, springLength = 160, springConstant = 0.03),
+      stabilization = TRUE
+    )
 }
