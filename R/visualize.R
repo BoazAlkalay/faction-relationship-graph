@@ -39,7 +39,7 @@ build_node_tooltip <- function(row) {
     val_chr <- as.character(val)
     if (val_chr == "") next
     label <- tools::toTitleCase(gsub("_", " ", f))
-    parts <- paste0(parts, format_tooltip_field(label, val_chr, max_chars = 200))
+    parts <- paste0(parts, format_tooltip_field(label, val_chr, max_chars = 140))
   }
   parts
 }
@@ -88,6 +88,21 @@ make_visNetwork_graph <- function(g) {
       highlightNearest = list(enabled = TRUE, degree = 1, hover = TRUE),
       nodesIdSelection = TRUE,
       selectedBy = "group"
+    ) |>
+    visInteraction(
+      tooltipStyle = paste(
+        "position: fixed;",
+        "visibility: hidden;",
+        "padding: 8px 10px;",
+        "white-space: normal;",
+        "max-width: 260px;",
+        "word-wrap: break-word;",
+        "background-color: #fdfdfd;",
+        "border: 1px solid #ccc;",
+        "border-radius: 4px;",
+        "box-shadow: 2px 2px 6px rgba(0,0,0,0.15);",
+        "font-size: 12px;"
+      )
     ) |>
     visLayout(randomSeed = 42) |>
     visEdges(smooth = TRUE) |>

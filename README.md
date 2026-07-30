@@ -13,9 +13,10 @@ below if you want to run it with real content that stays private.
 
 ## What it does
 
-- Add houses and NPCs, with a name suggestion button (procedural, not AI-generated — see the note below)
+- Add houses and NPCs, with a name suggestion button — procedural fantasy names by default, or realistic names from a free external generator, by country (see the note below on both)
+- Click a node on the graph to fill the From/To fields when adding a relationship, instead of hunting through the dropdowns
 - Wire up relationships between them, with the type list auto-filtered to what actually makes sense between the two entities you pick
-- Edit or delete any node/edge after the fact
+- Edit or delete any node/edge after the fact, including which attributes actually show up on hover
 - Roll random personality trait / bond / flaw / ideal for an NPC
 - View the whole graph as an interactive `visNetwork` widget
 
@@ -29,7 +30,7 @@ R/
                      # add_house_relations(), update_edge(), remove_edge()
   visualize.R       # make_visNetwork_graph(), tooltip formatting
   trait_roller.R    # roll_trait(), roll_all_traits(), load_custom_traits()
-  name_roller.R     # roll_name(), roll_name_options()
+  name_roller.R     # roll_name(), roll_name_options(), roll_name_realistic()
 data/
   seed_data.R       # build_seed_graph() - the placeholder demo world
 app.R               # the Shiny app
@@ -44,6 +45,8 @@ app.R               # the Shiny app
 
 ```r
 install.packages(c("shiny", "tidyverse", "tidygraph", "igraph", "ggraph", "visNetwork"))
+# optional, only needed for the "realistic name" generator:
+install.packages("httr")
 shiny::runApp()
 ```
 
@@ -75,7 +78,20 @@ same:
 The personality trait / bond / flaw / ideal tables in `R/trait_roller.R`
 are ones I wrote for this project, not transcribed from a published book —
 that's on purpose, so this repo doesn't carry someone else's copyrighted
-text. Same idea for `R/name_roller.R`: it builds names by recombining
-syllable fragments rather than pulling from a name list or a generative
-model. If you swap in tables from somewhere else, credit the source here
-rather than pasting the original text into the repo.
+text.
+
+`R/name_roller.R` has two modes:
+
+- **Procedural** (`roll_name()`): builds names by recombining syllable
+  fragments rather than pulling from a list — same idea as the trait
+  tables, no external content involved.
+- **Realistic** (`roll_name_realistic()`): calls the free, keyless
+  [randomuser.me](https://randomuser.me) API for a real first+last name
+  from a chosen country's naming pool. It's an existing name-generation
+  service, not a generative model — needs internet and the `httr`
+  package. Good for NPCs where "sounds like a plausible person" matters
+  more than fantasy flavor.
+
+If you'd rather use your own curated name/trait tables, load a CSV the
+same way `trait_roller.R`'s `load_custom_traits()` does, and credit the
+source here rather than pasting the original text into the repo.

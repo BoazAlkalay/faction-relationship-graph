@@ -57,6 +57,15 @@ ui <- fluidPage(
         ),
         tabPanel("Add NPC",
           br(),
+          radioButtons("npc_name_style", "Name style",
+                       choices = c("Fantasy (procedural, offline)" = "procedural",
+                                   "Realistic (external generator, by country)" = "realistic"),
+                       selected = "procedural"),
+          conditionalPanel(
+            condition = "input.npc_name_style == 'realistic'",
+            selectInput("npc_nationality", "Country / inspiration",
+                        choices = realistic_name_nationalities)
+          ),
           fluidRow(
             column(8, textInput("npc_name", "NPC name")),
             column(4, actionButton("suggest_npc_name", "Suggest", style = "margin-top:25px;"))
@@ -69,8 +78,19 @@ ui <- fluidPage(
         ),
         tabPanel("Add Relationship",
           br(),
+          helpText("Tip: click a node on the graph, then use the buttons below to fill From/To."),
           uiOutput("rel_from_ui"),
+          fluidRow(
+            column(12, actionButton("pick_from_btn", "\u2193 Use clicked node as From",
+                                     class = "btn-sm btn-outline-secondary"))
+          ),
+          br(),
           uiOutput("rel_to_ui"),
+          fluidRow(
+            column(12, actionButton("pick_to_btn", "\u2193 Use clicked node as To",
+                                     class = "btn-sm btn-outline-secondary"))
+          ),
+          br(),
           uiOutput("rel_type_ui"),
           conditionalPanel(
             condition = "input.rel_type == 'member_house'",
@@ -185,7 +205,14 @@ server <- function(input, output, session) {
   # ------------------------------------------------------------------
   npc_suggestions <- reactiveVal(character(0))
   observeEvent(input$suggest_npc_name, {
-    npc_suggestions(roll_name_options("given", n = 3))
+    if (identical(input$npc_name_style, "realistic")) {
+      tryCatch({
+        nm <- roll_name_realistic(input$npc_nationality)
+        npc_suggestions(nm)
+      }, error = function(e) showNotification(conditionMessage(e), type = "error"))
+    } else {
+      npc_suggestions(roll_name_options("given", n = 3))
+    }
   })
   output$npc_name_suggestions_ui <- renderUI({
     req(length(npc_suggestions()) > 0)
@@ -229,6 +256,31 @@ server <- function(input, output, session) {
     choices <- setdiff(node_names(), input$rel_from)
     selectInput("rel_to", "To", choices = choices)
   })
+
+  # Node clicked on the graph -> its name, via visNetwork's built-in
+  # input$network_selected (the row_number id we assigned as node id).
+  clicked_node_name <- reactive({
+    req(input$network_selected)
+    if (input$network_selected == "") return(NULL)
+    all_nodes() |> filter(id == as.integer(input$network_selected)) |> pull(name)
+  })
+  observeEvent(input$pick_from_btn, {
+    nm <- clicked_node_name()
+    if (is.null(nm) || length(nm) == 0) {
+      showNotification("Click a node on the graph first.", type = "warning")
+    } else {
+      updateSelectInput(session, "rel_from", selected = nm)
+    }
+  })
+  observeEvent(input$pick_to_btn, {
+    nm <- clicked_node_name()
+    if (is.null(nm) || length(nm) == 0) {
+      showNotification("Click a node on the graph first.", type = "warning")
+    } else {
+      updateSelectInput(session, "rel_to", selected = nm)
+    }
+  })
+
   output$rel_type_ui <- renderUI({
     req(input$rel_from, input$rel_to)
     types <- valid_rel_types(node_type_of(input$rel_from), node_type_of(input$rel_to))
