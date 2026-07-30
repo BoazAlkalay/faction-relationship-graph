@@ -321,7 +321,8 @@ server <- function(input, output, session) {
     if (is.null(input$network_edge_selected)) {
       showNotification("Click an edge line on the graph first.", type = "warning")
     } else {
-      updateSelectInput(session, "edit_edge_label", selected = as.character(input$network_edge_selected))
+      edge_num <- sub("^e", "", as.character(input$network_edge_selected))
+      updateSelectInput(session, "edit_edge_label", selected = edge_num)
     }
   })
 

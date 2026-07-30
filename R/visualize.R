@@ -97,14 +97,14 @@ make_visNetwork_graph <- function(g) {
       label = name,
       group = node_type,
       shape = ifelse(node_type == "house", "square", "dot"),
-      size = 7
+      size = 5
     )
 
   edges_vis <- g |>
     activate(edges) |>
     as_tibble() |>
     mutate(
-      id = row_number(),
+      id = paste0("e", row_number()),  # prefixed so this never collides with a node id
       title = paste0(
         "<b>", edge_labels[edge_type], "</b><br>",
         format_tooltip_field("Nature", relationship_nature, max_chars = 150),
@@ -151,7 +151,8 @@ make_visNetwork_graph <- function(g) {
       }
     }") |>
     visLayout(randomSeed = 42) |>
-    visEdges(smooth = list(enabled = TRUE, type = "curvedCW", roundness = 0.15)) |>
+    visEdges(smooth = list(enabled = TRUE, type = "curvedCW", roundness = 0.08)) |>
+    visNodes(scaling = list(min = 5, max = 5)) |>
     visPhysics(
       solver = "barnesHut",
       barnesHut = list(gravitationalConstant = -4000, springLength = 160, springConstant = 0.03),
