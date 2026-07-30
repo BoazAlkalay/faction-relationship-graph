@@ -25,21 +25,30 @@ format_tooltip_field <- function(field_name, field_value, max_chars = NULL) {
 
 #' Build one node's tooltip HTML from whichever fields its visible_fields
 #' column lists (comma-separated). Falls back to just the name if none set.
+#' Each field gets its own row with alternating shading so adjacent
+#' attributes (e.g. Bond vs Flaw) are easy to tell apart at a glance.
 build_node_tooltip <- function(row) {
   visible <- character(0)
   if (!is.null(row$visible_fields) && !is.na(row$visible_fields) && row$visible_fields != "") {
     visible <- trimws(strsplit(row$visible_fields, ",")[[1]])
   }
 
-  parts <- paste0("<b>", row$name, "</b><br>")
+  parts <- paste0("<div style='font-weight:bold;padding:3px 4px;'>", row$name, "</div>")
+  shown <- 0
   for (f in visible) {
     if (!f %in% names(row)) next
     val <- row[[f]]
     if (length(val) == 0 || is.na(val)) next
     val_chr <- as.character(val)
     if (val_chr == "") next
+
     label <- tools::toTitleCase(gsub("_", " ", f))
-    parts <- paste0(parts, format_tooltip_field(label, val_chr, max_chars = 140))
+    field_html <- format_tooltip_field(label, val_chr, max_chars = 140)
+    field_html <- sub("<br>$", "", field_html)  # we're using divs, not <br>, for row breaks
+
+    bg <- if (shown %% 2 == 0) "#f2f2f2" else "#ffffff"
+    parts <- paste0(parts, "<div style='background-color:", bg, ";padding:3px 4px;'>", field_html, "</div>")
+    shown <- shown + 1
   }
   parts
 }
@@ -93,7 +102,7 @@ make_visNetwork_graph <- function(g) {
       tooltipStyle = paste(
         "position: fixed;",
         "visibility: hidden;",
-        "padding: 8px 10px;",
+        "padding: 0;",
         "white-space: normal;",
         "max-width: 260px;",
         "word-wrap: break-word;",
@@ -101,7 +110,8 @@ make_visNetwork_graph <- function(g) {
         "border: 1px solid #ccc;",
         "border-radius: 4px;",
         "box-shadow: 2px 2px 6px rgba(0,0,0,0.15);",
-        "font-size: 12px;"
+        "font-size: 12px;",
+        "overflow: hidden;"
       )
     ) |>
     visLayout(randomSeed = 42) |>

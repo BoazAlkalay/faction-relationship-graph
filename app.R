@@ -40,6 +40,7 @@ editable_node_fields <- function(node_type) {
 }
 
 ui <- fluidPage(
+  theme = bslib::bs_theme(version = 5),
   tags$style(HTML("
     .accordion-item:nth-of-type(odd) { background-color: #f7f7f9; }
     .accordion-item:nth-of-type(even) { background-color: #ffffff; }
