@@ -5,6 +5,10 @@
 .git/
 .gitignore
 
-# real campaign data - never deploy this to shinyapps.io
+# real campaign data - never deploy this to shinyapps.io (public data like
+# the Florentine CSVs is needed at runtime by seed_data.R and must NOT be
+# excluded here)
 *.rds
-data/*.csv
+data/torin_*.csv
+data/*-campaign.csv
+data/my_*.csv

@@ -6,6 +6,10 @@
 .DS_Store
 rsconnect/
 
-# real campaign data - keep out of the public repo
+# real campaign data - keep out of the public repo (rename any private
+# working files to match this pattern; public data like the Florentine
+# CSVs is meant to be committed and stays untouched by this rule)
 *.rds
-data/*.csv
+data/torin_*.csv
+data/*-campaign.csv
+data/my_*.csv
