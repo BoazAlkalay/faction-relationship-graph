@@ -18,6 +18,7 @@ house_schema <- list(
   visible_fields = "desc,city",
   # Identity & Location
   desc = NA_character_,
+  history = NA_character_,
   crest_desc = NA_character_,
   city = NA_character_,
   district = NA_character_,
@@ -45,16 +46,21 @@ house_schema <- list(
 npc_schema <- list(
   node_type = "NPC",
   # Which attributes show up in the graph tooltip - see house_schema note above.
-  visible_fields = "personality_trait,bond,flaw,ideal,desc,age",
+  visible_fields = "personality_trait,bond,flaw,ideal,desc,age,birth_year,death_year",
   # Character traits (see trait_roller.R) - kept up top since these are
   # usually the first thing worth glancing at for an NPC
   personality_trait = NA_character_,
   bond = NA_character_,
   flaw = NA_character_,
   ideal = NA_character_,
+  # Dates - free text (not parsed) so "c. 1421" or "unknown" work fine, not
+  # just clean numbers
+  birth_year = NA_character_,
+  death_year = NA_character_,
   # Identity & Location
   age = NA_integer_,
   desc = NA_character_,
+  history = NA_character_,
   city = NA_character_,
   district = NA_character_,
   main_residence = NA_character_,
@@ -80,6 +86,7 @@ npc_schema <- list(
 
 edge_schema <- list(
   relationship_nature = NA_character_,
+  date = NA_character_,  # e.g. "1415" or "26 April 1478" - free text, not parsed
   sentiment = NA_character_,
   standing = NA_character_,
   intentions = NA_character_,

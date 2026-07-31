@@ -60,15 +60,33 @@ build_seed_graph <- function() {
 
   # --- Real historical individuals (facts only, no invented traits) ------
   g <- g |>
-    add_NPC("Cosimo de' Medici", desc = "1389-1464. \"il Vecchio.\" Unofficial ruler of Florence from 1434; financed Brunelleschi's dome for the Duomo.", visible_fields = "desc") |>
-    add_NPC("Lorenzo de' Medici", desc = "1449-1492. \"il Magnifico.\" Grandson of Cosimo. Survived an assassination attempt during the 1478 Pazzi conspiracy.", visible_fields = "desc") |>
-    add_NPC("Giuliano de' Medici", desc = "1453-1478. Lorenzo's brother and co-ruler. Killed during the Pazzi conspiracy's attack at Easter Mass in the Duomo.", visible_fields = "desc") |>
-    add_NPC("Jacopo de' Pazzi", desc = "Head of the Pazzi family at the time of the 1478 conspiracy against the Medici. Executed after it failed.", visible_fields = "desc") |>
-    add_NPC("Francesco de' Pazzi", desc = "Nephew of Jacopo. One of the conspiracy's organizers and among those who attacked Giuliano de' Medici. Executed.", visible_fields = "desc") |>
-    add_NPC("Renato de' Pazzi", desc = "1442-1478. Nephew of Jacopo. Took no part in the conspiracy, but was seized and killed in the reprisals afterward regardless.", visible_fields = "desc") |>
-    add_NPC("Rinaldo degli Albizzi", desc = "1370-1442. Primary political opponent of Cosimo de' Medici's rise; exiled after Cosimo returned to power in 1434, died in exile in Ancona.", visible_fields = "desc") |>
-    add_NPC("Palla Strozzi", desc = "One of Florence's wealthiest men and, alongside Rinaldo degli Albizzi, a primary opponent of Cosimo de' Medici's rise; exiled in 1434.", visible_fields = "desc") |>
-    add_NPC("Francesco Salviati", desc = "Archbishop of Pisa. One of the organizers of the 1478 Pazzi conspiracy; executed by hanging from the Palazzo della Signoria afterward.", visible_fields = "desc")
+    add_NPC("Cosimo de' Medici", birth_year = "1389", death_year = "1464",
+            desc = "\"il Vecchio.\" Unofficial ruler of Florence from 1434; financed Brunelleschi's dome for the Duomo.",
+            visible_fields = "birth_year,death_year,desc") |>
+    add_NPC("Lorenzo de' Medici", birth_year = "1449", death_year = "1492",
+            desc = "\"il Magnifico.\" Grandson of Cosimo. Survived an assassination attempt during the 1478 Pazzi conspiracy.",
+            visible_fields = "birth_year,death_year,desc") |>
+    add_NPC("Giuliano de' Medici", birth_year = "1453", death_year = "1478",
+            desc = "Lorenzo's brother and co-ruler. Killed during the Pazzi conspiracy's attack at Easter Mass in the Duomo.",
+            visible_fields = "birth_year,death_year,desc") |>
+    add_NPC("Jacopo de' Pazzi",
+            desc = "Head of the Pazzi family at the time of the 1478 conspiracy against the Medici. Executed after it failed.",
+            visible_fields = "desc") |>
+    add_NPC("Francesco de' Pazzi",
+            desc = "Nephew of Jacopo. One of the conspiracy's organizers and among those who attacked Giuliano de' Medici. Executed.",
+            visible_fields = "desc") |>
+    add_NPC("Renato de' Pazzi", birth_year = "1442", death_year = "1478",
+            desc = "Nephew of Jacopo. Took no part in the conspiracy, but was seized and killed in the reprisals afterward regardless.",
+            visible_fields = "birth_year,death_year,desc") |>
+    add_NPC("Rinaldo degli Albizzi", birth_year = "1370", death_year = "1442",
+            desc = "Primary political opponent of Cosimo de' Medici's rise; exiled after Cosimo returned to power in 1434, died in exile in Ancona.",
+            visible_fields = "birth_year,death_year,desc") |>
+    add_NPC("Palla Strozzi",
+            desc = "One of Florence's wealthiest men and, alongside Rinaldo degli Albizzi, a primary opponent of Cosimo de' Medici's rise; exiled in 1434.",
+            visible_fields = "desc") |>
+    add_NPC("Francesco Salviati",
+            desc = "Archbishop of Pisa. One of the organizers of the 1478 Pazzi conspiracy; executed by hanging from the Palazzo della Signoria afterward.",
+            visible_fields = "desc")
 
   # --- Memberships ---------------------------------------------------------
   g <- g |>

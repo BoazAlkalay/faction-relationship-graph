@@ -90,6 +90,7 @@ build_edge_tooltip <- function(row) {
   if (is.na(label)) label <- row$edge_type
 
   fields <- list(
+    Date = list(row$date, NULL),
     Nature = list(row$relationship_nature, 150),
     Intentions = list(row$intentions, NULL),
     Position = list(row$position, NULL),

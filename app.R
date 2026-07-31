@@ -64,6 +64,7 @@ ui <- fluidPage(
           uiOutput("house_name_suggestions_ui"),
           textInput("house_city", "City", value = ""),
           textAreaInput("house_desc", "Description", rows = 3),
+          textAreaInput("house_history", "History", rows = 3),
           actionButton("add_house_btn", "Add House", class = "btn-primary")
         ),
         accordion_panel(
@@ -83,6 +84,7 @@ ui <- fluidPage(
           uiOutput("npc_name_suggestions_ui"),
           numericInput("npc_age", "Age", value = NA, min = 0),
           textAreaInput("npc_desc", "Description", rows = 3),
+          textAreaInput("npc_history", "History", rows = 3),
           checkboxInput("npc_roll_traits", "Roll personality/bond/flaw/ideal", value = TRUE),
           actionButton("add_npc_btn", "Add NPC", class = "btn-primary")
         ),
@@ -103,6 +105,7 @@ ui <- fluidPage(
             textInput("rel_position", "Position (e.g. Head of Household, Heir)")
           ),
           textInput("rel_nature", "Nature (e.g. rival, sibling, ally, creditor)"),
+          textInput("rel_date", "Date (optional, e.g. 1415 or 26 April 1478)"),
           textInput("rel_sentiment", "Sentiment / standing"),
           textInput("rel_intentions", "Intentions (optional)"),
           textAreaInput("rel_additional", "Additional details (optional)", rows = 2),
@@ -220,9 +223,11 @@ server <- function(input, output, session) {
     req(input$house_name)
     tryCatch({
       graph_rv(add_house(graph_rv(), input$house_name,
-                          city = input$house_city, desc = input$house_desc))
+                          city = input$house_city, desc = input$house_desc,
+                          history = input$house_history))
       updateTextInput(session, "house_name", value = "")
       updateTextAreaInput(session, "house_desc", value = "")
+      updateTextAreaInput(session, "house_history", value = "")
       house_suggestions(character(0))
     }, error = function(e) showNotification(conditionMessage(e), type = "error"))
   })
@@ -261,7 +266,8 @@ server <- function(input, output, session) {
   observeEvent(input$add_npc_btn, {
     req(input$npc_name)
     tryCatch({
-      g <- add_NPC(graph_rv(), input$npc_name, age = input$npc_age, desc = input$npc_desc)
+      g <- add_NPC(graph_rv(), input$npc_name, age = input$npc_age, desc = input$npc_desc,
+                   history = input$npc_history)
       if (isTRUE(input$npc_roll_traits)) {
         traits <- roll_all_traits()
         g <- do.call(update_node, c(list(graph = g, node_name = input$npc_name), traits))
@@ -269,6 +275,7 @@ server <- function(input, output, session) {
       graph_rv(g)
       updateTextInput(session, "npc_name", value = "")
       updateTextAreaInput(session, "npc_desc", value = "")
+      updateTextAreaInput(session, "npc_history", value = "")
       npc_suggestions(character(0))
     }, error = function(e) showNotification(conditionMessage(e), type = "error"))
   })
@@ -344,23 +351,27 @@ server <- function(input, output, session) {
       g <- switch(input$rel_type,
         member_house = NPC_assign_house(g, input$rel_from, input$rel_to,
                                          position = input$rel_position,
+                                         date = input$rel_date,
                                          sentiment = input$rel_sentiment,
                                          intentions = input$rel_intentions,
                                          additional_desc = input$rel_additional),
         NPC_NPC = add_NPC_relationship(g, input$rel_from, input$rel_to,
                                         relationship_nature = input$rel_nature,
+                                        date = input$rel_date,
                                         sentiment = input$rel_sentiment,
                                         mutual = input$rel_mutual,
                                         intentions = input$rel_intentions,
                                         additional_desc = input$rel_additional),
         house_house = add_house_relations(g, input$rel_from, input$rel_to,
                                            standing = input$rel_sentiment,
+                                           date = input$rel_date,
                                            mutual = input$rel_mutual,
                                            intentions = input$rel_intentions,
                                            additional_desc = input$rel_additional),
         NPC_house = add_relationship(g, input$rel_from, input$rel_to,
                                       edge_type = "NPC_house",
                                       relationship_nature = input$rel_nature,
+                                      date = input$rel_date,
                                       standing = input$rel_sentiment,
                                       intentions = input$rel_intentions,
                                       additional_desc = input$rel_additional)
@@ -409,7 +420,7 @@ server <- function(input, output, session) {
     field_inputs <- lapply(fields, function(f) {
       val <- row[[f]]
       val <- if (length(val) == 0 || is.na(val)) "" else as.character(val)
-      if (f == "desc" || grepl("goals_n_interests|scandals|secrets|additional", f)) {
+      if (f %in% c("desc", "history") || grepl("goals_n_interests|scandals|secrets|additional", f)) {
         textAreaInput(paste0("edit_field_", f), f, value = val, rows = 2)
       } else {
         textInput(paste0("edit_field_", f), f, value = val)
@@ -491,6 +502,7 @@ server <- function(input, output, session) {
     val <- function(x) if (is.na(x)) "" else as.character(x)
     tagList(
       textInput("edit_edge_nature", "Nature", value = val(row$relationship_nature)),
+      textInput("edit_edge_date", "Date", value = val(row$date)),
       textInput("edit_edge_sentiment", "Sentiment", value = val(row$sentiment)),
       textInput("edit_edge_standing", "Standing", value = val(row$standing)),
       textInput("edit_edge_position", "Position", value = val(row$position)),
@@ -506,6 +518,7 @@ server <- function(input, output, session) {
     tryCatch({
       g <- update_edge(graph_rv(), row$from_name, row$to_name,
                         relationship_nature = input$edit_edge_nature,
+                        date = input$edit_edge_date,
                         sentiment = input$edit_edge_sentiment,
                         standing = input$edit_edge_standing,
                         position = input$edit_edge_position,
