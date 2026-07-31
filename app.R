@@ -62,7 +62,7 @@ ui <- fluidPage(
           div(class = "name-suggest-row",
               actionButton("suggest_house_name", "Suggest a name", class = "btn-sm btn-outline-secondary")),
           uiOutput("house_name_suggestions_ui"),
-          textInput("house_city", "City", value = "Aldenmere"),
+          textInput("house_city", "City", value = ""),
           textAreaInput("house_desc", "Description", rows = 3),
           actionButton("add_house_btn", "Add House", class = "btn-primary")
         ),

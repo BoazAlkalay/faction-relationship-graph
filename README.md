@@ -7,9 +7,11 @@ into a small Shiny app: add houses and NPCs, wire up relationships between
 them, and see the whole thing as an interactive network graph instead of a
 pile of notes.
 
-The public demo runs on a made-up placeholder world (Aldenmere, in
-`data/seed_data.R`) — not my actual campaign. See "Using your own data"
-below if you want to run it with real content that stays private.
+The public demo runs on the real Padgett/Ansell Florentine families network
+(16 houses of Renaissance Florence, their 20 documented marriage alliances,
+and a handful of real historical figures with factual descriptions — see
+`data/seed_data.R` for sourcing) — not my actual campaign. See "Using your
+own data" below if you want to run it with real content that stays private.
 
 ## What it does
 
